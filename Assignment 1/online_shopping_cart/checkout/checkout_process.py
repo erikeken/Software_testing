@@ -1,3 +1,5 @@
+import json
+
 from online_shopping_cart.checkout.shopping_cart import ShoppingCart
 from online_shopping_cart.product.product_data import get_products
 from online_shopping_cart.user.user_interface import UserInterface
@@ -12,6 +14,7 @@ from online_shopping_cart.user.user import User
 
 global_products: list[Product] = get_products()  # Load products from CSV
 global_cart: ShoppingCart = ShoppingCart()
+global_user_file_path = "files/users.json"
 
 
 ##############################
@@ -94,7 +97,7 @@ def checkout_and_payment(login_info) -> None:
     """
     Main function for the shopping and checkout process
     """
-    global global_products, global_cart
+    global global_products, global_cart, global_user_file_path
 
     user: User = User(
         name=login_info['username'],
@@ -112,10 +115,18 @@ def checkout_and_payment(login_info) -> None:
             if check_cart(user=user, cart=global_cart) is False:
                 continue  # The user has selected not to check out their cart
             else:
-                pass  # TODO: Task 4: update the wallet information in the users.json file
+                with open(global_user_file_path, 'r') as file:
+                    data = json.load(file)
+                for itr in data:
+                    if itr['username'] == user.name:
+                        itr['wallet'] = user.wallet
+                with open(global_user_file_path, 'w') as file:
+                    json.dump(data, file, indent=2)
+                # Task 4 finished: update the wallet information in the users.json file
         elif choice.startswith('l'):
             if logout(cart=global_cart):
                 exit(0)  # The user has logged out
+                return
         elif choice.isdigit() and 1 <= int(choice) <= len(global_products):
             selected_product: Product = global_products[int(choice) - 1]
             if selected_product.units > 0:

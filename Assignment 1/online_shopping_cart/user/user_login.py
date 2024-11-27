@@ -13,11 +13,11 @@ def is_quit(input_argument: str) -> bool:
 def register_user(username: str, data) -> None:
     """Prompts the user to input username and password, registers user if the password meets the criteria(special, upper and length) if not prompt again"""
     while True:
-        password = UserInterface.get_user_input(prompt='Enter a password: ')
+        password = UserInterface.get_user_input(prompt='Enter a password: ') # prompt the user for password
 
-        if PasswordValidator.is_valid(password):
+        if PasswordValidator.is_valid(password): # if true call UserAuthenticator to register the new user
             UserAuthenticator.register(username=username, password=password, data=data)
-            print('Congratulations! you are now registered! Try login in')
+            print(f'Congratulations {username}! you are now registered! Try login in')
             break
         else:
             print('Password must have at least 8 characters, one special character and one upper case character. Try again')
@@ -39,7 +39,7 @@ def login() -> dict[str, str | float] | None:
     if is_authentic_user is not None:
         return is_authentic_user
 
-    # TODO: Task 1: prompt user to register when not found
+    # Task 1: prompt user to register when not found
 
     # Prompt user to register if username is not found
     register_prompt = UserInterface.get_user_input(f"Username '{username}' not found. Would you like to register? (y/n): ")

@@ -10,15 +10,15 @@ class PasswordValidator:
 
     @staticmethod
     def is_valid(password) -> bool:
-        check_upper = any(i.isupper() for i in password)
-        check_special = bool(re.search(r"[!@#$%^&*(),.?\":{}|<>]", password))
-        check_length = len(password) >= 8
+        check_upper = any(i.isupper() for i in password) # check if the password contains one or more upper letter
+        check_special = bool(re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)) # check if password contains any special characters
+        check_length = len(password) >= 8 #check if length is equal or more than 8 characters
 
-        if check_upper or check_special or check_length:
+        if check_upper and check_special and check_length: # If all =true return true else false
             return True
         else:
             return False
-          # TODO: Task 1: validate password for registration
+          # Task 1: validate password for registration
 
 
 class UserAuthenticator:
@@ -46,12 +46,12 @@ class UserAuthenticator:
         return None
 
     @staticmethod
-    def register(username, password, data) -> None:
+    def register(username, password, data) -> None: # register new user, needs username, password and the current user list
         new_user = {
             'username': username,
             'password': password,
             'wallet': 0.0
         }
-        data.append(new_user)
-        UserDataManager.save_users(data)
-          # TODO: Task 1: register username and password as new user to file with 0.0 wallet funds
+        data.append(new_user) # append the new user to user list
+        UserDataManager.save_users(data) # rewrite the .json with the added user
+        #  Task 1: register username and password as new user to file with 0.0 wallet funds

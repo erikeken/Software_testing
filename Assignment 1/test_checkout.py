@@ -95,13 +95,14 @@ class TestCheckout:
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_products', [['Tomato', '1', '15']])
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_cart', cart_stub)
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_user_file_path', "tests/users.json")
-        mocker.patch('online_shopping_cart.checkout.checkout_process.logout', return_value=True)
+        mock_logout = mocker.patch('online_shopping_cart.checkout.checkout_process.logout', return_value=True)
         mocker.patch('builtins.exit')
 
         checkout_and_payment(login_stub1)
 
         captured = capsys.readouterr()
         display_products_available_for_purchase_stub.assert_called_once()
+        mock_logout.assert_called_once()
 
     # test not check out cart
     def test_checkout_and_payment5(self, cart_stub, login_stub1, mocker, monkeypatch, capsys,
@@ -270,7 +271,7 @@ class TestCheckout:
     def test_checkout_and_payment13(self, cart_stub, login_stub1, mocker, monkeypatch, capsys,
                                    display_products_available_for_purchase_stub):
         mocker.patch("online_shopping_cart.user.user_interface.UserInterface.get_user_input",
-                     side_effect=["[\"c\"]", "l"])
+                     side_effect=["[c]", "l"])
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_products', [['Tomato', '1', '15']])
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_cart', cart_stub)
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_user_file_path', "tests/users.json")
@@ -287,7 +288,8 @@ class TestCheckout:
                                     display_products_available_for_purchase_stub):
         mocker.patch("online_shopping_cart.user.user_interface.UserInterface.get_user_input",
                      side_effect=["525", "l"])
-        mocker.patch('online_shopping_cart.checkout.checkout_process.global_products', [['Tomato', '1', '15']])
+        mock_product = [Product('Tomato', 1, 15)]
+        mocker.patch('online_shopping_cart.checkout.checkout_process.global_products', mock_product)
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_cart', cart_stub)
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_user_file_path', "tests/users.json")
         mocker.patch('online_shopping_cart.checkout.checkout_process.logout', return_value=True)
@@ -303,7 +305,8 @@ class TestCheckout:
                                     display_products_available_for_purchase_stub):
         mocker.patch("online_shopping_cart.user.user_interface.UserInterface.get_user_input",
                      side_effect=["0", "l"])
-        mocker.patch('online_shopping_cart.checkout.checkout_process.global_products', [['Tomato', '1', '15']])
+        mock_product = [Product('Tomato', 1, 15)]
+        mocker.patch('online_shopping_cart.checkout.checkout_process.global_products', mock_product)
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_cart', cart_stub)
         mocker.patch('online_shopping_cart.checkout.checkout_process.global_user_file_path', "tests/users.json")
         mocker.patch('online_shopping_cart.checkout.checkout_process.logout', return_value=True)
@@ -408,4 +411,5 @@ class TestCheckout:
         checkout_and_payment(login_stub1)
 
         captured = capsys.readouterr()
+        assert cart_stub.add_item.call_count == 0
         assert (captured.out == 'Invalid input. Please try again.\n')

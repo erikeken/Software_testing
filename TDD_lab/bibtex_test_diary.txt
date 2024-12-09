@@ -1,0 +1,280 @@
+RED
+
+Test code.
+
+import bibtex
+import pytest
+
+@pytest.fixture
+def setup_data():
+    return {
+        'simple_author_1': "Smith",
+        'simple_author_2': "Jones"
+    }
+
+def test_author_1(setup_data):
+    # Test only surnames.
+    (Surname, FirstNames) = bibtex.extract_author(setup_data['simple_author_1'])
+    assert (Surname, FirstNames) == ('Smith', '')
+    (Surname, FirstNames) = bibtex.extract_author(setup_data['simple_author_2'])
+    assert (Surname, FirstNames) == ('Jones', '')
+
+===========================failed error==================================
+collecting ... collected 1 item
+
+bibtex_tests.py::test_author_1 FAILED                                    [100%]
+bibtex_tests.py:16 (test_author_1)
+setup_data = {'simple_author_1': 'Smith', 'simple_author_2': 'Jones'}
+
+    def test_author_1(setup_data):
+        # Test only surnames.
+>       (Surname, FirstNames) = bibtex.extract_author(setup_data['simple_author_1'])
+E       TypeError: cannot unpack non-iterable NoneType object
+
+bibtex_tests.py:19: TypeError
+==================================================================
+
+Green
+
+Update extract_author to handle cases where only a surname is given by,
+if there is only one word in the string, it's just the surname.
+
+def extract_author(author_str):
+    parts = author_str.split()
+    if len(parts) == 1:
+        return parts[0], ''
+
+============================= test session starts =============================
+collecting ... collected 1 item
+
+bibtex_tests.py::test_author_1 PASSED                                    [100%]
+
+============================== 1 passed in 0.02s ==============================
+
+RED
+Expand the test suite for "Forename Surname" cases
+
+def test_author_2(setup_data):
+    # Test simple first name author.
+    (Surname, First) = bibtex.extract_author(setup_data['author_1'])
+    assert (Surname, First) == ("Smith", "John")
+    (Surname, First) = bibtex.extract_author(setup_data['author_2'])
+    assert (Surname, First) == ("Jones", "Bob")
+
+===========================failed error==================================
+collecting ... collected 2 items
+
+bibtex_tests.py::test_author_1 PASSED                                    [ 50%]
+bibtex_tests.py::test_author_2 FAILED                                    [100%]
+bibtex_tests.py:19 (test_author_2)
+setup_data = {'author_1': 'John Smith', 'author_2': 'Bob Jones', 'simple_author_1': 'Smith', 'simple_author_2': 'Jones'}
+
+    def test_author_2(setup_data):
+        # Test simple first name author.
+>       (Surname, First) = bibtex.extract_author(setup_data['author_1'])
+E       TypeError: cannot unpack non-iterable NoneType object
+
+bibtex_tests.py:22: TypeError
+==================================================================
+
+Green
+Update extract_author for "Forename Surname" cases
+
+def extract_author(author_str):
+    parts = author_str.split()
+    if len(parts) == 1:
+        return parts[0], ''
+
+    return parts[1], parts[0]
+
+============================= test session starts =============================
+collecting ... collected 2 items
+
+bibtex_tests.py::test_author_1 PASSED                                    [ 50%]
+bibtex_tests.py::test_author_2 PASSED                                    [100%]
+
+============================== 2 passed in 0.01s ==============================
+
+RED //maybe blue?
+Test for "Surname, Forename(s)" cases
+
+def test_author_3(setup_data):
+    (Surname, First) = bibtex.extract_author(setup_data['author_3'])
+    assert (Surname, First) == ("Pearson", "Justin Kenneth")
+
+===========================failed error==================================
+collecting ... collected 3 items
+
+bibtex_tests.py::test_author_1 PASSED                                    [ 33%]
+bibtex_tests.py::test_author_2 PASSED                                    [ 66%]
+bibtex_tests.py::test_author_3 FAILED                                    [100%]
+bibtex_tests.py:27 (test_author_3)
+('Kenneth', 'Justin') != ('Pearson', 'Justin Kenneth')
+
+Expected :('Pearson', 'Justin Kenneth')
+Actual   :('Kenneth', 'Justin')
+<Click to see difference>
+
+setup_data = {'author_1': 'John Smith', 'author_2': 'Bob Jones', 'author_3': 'Justin Kenneth Pearson', 'simple_author_1': 'Smith', ...}
+
+    def test_author_3(setup_data):
+        (Surname, First) = bibtex.extract_author(setup_data['author_3'])
+>       assert (Surname, First) == ("Pearson", "Justin Kenneth")
+E       AssertionError: assert ('Kenneth', 'Justin') == ('Pearson', 'Justin Kenneth')
+E
+E         At index 0 diff: 'Kenneth' != 'Pearson'
+E
+E         Full diff:
+E           (
+E         -     'Pearson',
+E         -     'Justin Kenneth',
+E         ?      -------
+E         +     'Kenneth',
+E         +     'Justin',
+E           )
+
+bibtex_tests.py:30: AssertionError
+=================================================================================================
+
+GREEN
+Expand the code to pass multiple forenames cases
+
+def extract_author(author_str):
+    parts = author_str.split()
+    #if only one part = surname
+    if len(parts) == 1:
+        return parts[0], ''
+
+    surname = parts[-1] # last is always the surname
+    forenames = " ".join(parts[:-1])
+    return surname, forenames
+
+============================= test session starts =============================
+collecting ... collected 3 items
+
+bibtex_tests.py::test_author_1 PASSED                                    [ 33%]
+bibtex_tests.py::test_author_2 PASSED                                    [ 66%]
+bibtex_tests.py::test_author_3 PASSED                                    [100%]
+
+============================== 3 passed in 0.02s ==============================
+
+RED
+Expand the test suite with authors with the surname presented first.
+
+def test_surname_first(setup_data):
+    (Surname, First) = bibtex.extract_author(setup_data['surname_first_1'])
+    assert (Surname, First) == ("Pearson", "Justin Kenneth")
+    (Surname, First) = bibtex.extract_author(setup_data['surname_first_2'])
+    assert (Surname, First) == ("Van Hentenryck", "Pascal")
+
+===========================failed error==================================
+    collecting ... collected 4 items
+
+bibtex_tests.py::test_author_1 PASSED                                    [ 25%]
+bibtex_tests.py::test_author_2 PASSED                                    [ 50%]
+bibtex_tests.py::test_author_3 PASSED                                    [ 75%]
+bibtex_tests.py::test_surname_first FAILED                               [100%]
+bibtex_tests.py:34 (test_surname_first)
+('Kenneth', 'Pearson, Justin') != ('Pearson', 'Justin Kenneth')
+
+Expected :('Pearson', 'Justin Kenneth')
+Actual   :('Kenneth', 'Pearson, Justin')
+<Click to see difference>
+
+setup_data = {'author_1': 'John Smith', 'author_2': 'Bob Jones', 'author_3': 'Justin Kenneth Pearson', 'multiple_authors_1': 'Pearson, Justin and Jones, Bob', ...}
+
+    def test_surname_first(setup_data):
+        (Surname, First) = bibtex.extract_author(setup_data['surname_first_1'])
+>       assert (Surname, First) == ("Pearson", "Justin Kenneth")
+E       AssertionError: assert ('Kenneth', 'Pearson, Justin') == ('Pearson', 'Justin Kenneth')
+E
+E         At index 0 diff: 'Kenneth' != 'Pearson'
+E
+E         Full diff:
+E           (
+E         -     'Pearson',
+E         -     'Justin Kenneth',
+E         ?      -------
+E         +     'Kenneth',
+E         +     'Pearson, Justin',
+E           )
+
+bibtex_tests.py:37: AssertionError
+========================================================================================================
+
+Green (blue?)
+Update the code to accept authors with format [surname, forename]
+
+def extract_author(author_str):
+    author_str = author_str.strip()
+
+    if ',' in author_str:
+        parts = author_str.split(',') #split at coma
+        if len(parts) ==2:
+            surname = parts[0].strip()
+            forenames = parts[1].strip()
+            return (surname, forenames)
+
+    parts = author_str.split()
+    #if only one part = surname
+    if len(parts) == 1:
+        return parts[0], ''
+
+    surname = parts[-1] # last is always the surname
+    forenames = " ".join(parts[:-1])
+    return surname, forenames
+
+============================= test session starts =============================
+collecting ... collected 4 items
+
+bibtex_tests.py::test_author_1 PASSED                                    [ 25%]
+bibtex_tests.py::test_author_2 PASSED                                    [ 50%]
+bibtex_tests.py::test_author_3 PASSED                                    [ 75%]
+bibtex_tests.py::test_surname_first PASSED                               [100%]
+
+============================== 4 passed in 0.02s ==============================
+
+RED
+Expand the test suite with cases that include multiple authors that are separated by "and"
+
+def test_multiple_authors(setup_data):
+    Authors = bibtex.extract_authors(setup_data['multiple_authors_1'])
+    assert Authors[0] == ('Pearson', 'Justin')
+    assert Authors[1] == ('Jones', 'Bob')
+
+===========================failed error==================================
+collecting ... collected 5 items
+
+bibtex_tests.py::test_author_1 PASSED                                    [ 20%]
+bibtex_tests.py::test_author_2 PASSED                                    [ 40%]
+bibtex_tests.py::test_author_3 PASSED                                    [ 60%]
+bibtex_tests.py::test_surname_first PASSED                               [ 80%]
+bibtex_tests.py::test_multiple_authors FAILED                            [100%]
+bibtex_tests.py:40 (test_multiple_authors)
+setup_data = {'author_1': 'John Smith', 'author_2': 'Bob Jones', 'author_3': 'Justin Kenneth Pearson', 'multiple_authors_1': 'Pearson, Justin and Jones, Bob', ...}
+
+    def test_multiple_authors(setup_data):
+>       Authors = bibtex.extract_authors(setup_data['multiple_authors_1'])
+E       AttributeError: module 'bibtex' has no attribute 'extract_authors'
+
+bibtex_tests.py:42: AttributeError
+=========================================================================
+
+GREEN
+Implement extract_authors that uses extract_author for each author
+
+def extract_authors(authors_str):
+    authors = authors_str.split(" and ")
+
+    return [extract_author(author.strip()) for author in authors]
+
+============================= test session starts =============================
+collecting ... collected 5 items
+
+bibtex_tests.py::test_author_1 PASSED                                    [ 20%]
+bibtex_tests.py::test_author_2 PASSED                                    [ 40%]
+bibtex_tests.py::test_author_3 PASSED                                    [ 60%]
+bibtex_tests.py::test_surname_first PASSED                               [ 80%]
+bibtex_tests.py::test_multiple_authors PASSED                            [100%]
+
+============================== 5 passed in 0.02s ==============================

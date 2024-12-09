@@ -1,0 +1,315 @@
+RED
+
+Test code.
+
+import darts
+import pytest
+
+def test_scoreboard():
+ game = darts.scoreboard()
+
+def test_score():
+ game = darts.scoreboard()
+ assert game.playerscores(1) == 301
+ assert game.playerscores(2) == 301
+
+
+===========================failed error==================================
+test_darts.py:2 (test_scoreboard)
+def test_scoreboard():
+> game = darts.scoreboard()
+E AttributeError: module 'darts' has no attribute 'scoreboard'
+
+test_darts.py::test_score FAILED [100%]
+test_darts.py:5 (test_score)
+def test_score():
+ game = darts.scoreboard()
+> assert game.playerscores == [301,301]
+E AttributeError: 'scoreboard' object has no attribute 'playerscores'
+
+=============================================================
+
+GREEN
+
+Initialising the class scoreboard.
+----To pass the test, write the following code---
+
+class scoreboard:
+ def __init__(self):
+ self.playerscores = [301, 301]
+
+def playerscore(self, player):
+ return (self.playerscores[player-1])
+
+
+==================================================================
+test_darts.py::test_scoreboard PASSED [ 50%]
+test_darts.py::test_score PASSED [ 50%]
+
+==================================================================
+
+
+RED
+add to the test to make sure that there are only two players. 
+In case a third player is referenced, an exception must be thrown
+-Write a test to check if trying to access a non-existing player raises an exception
+
+def test_noThirdPlayer():
+ game = darts.scoreboard()
+ with pytest.raises(NameError):
+ game.playerscore(3)
+
+
+============================failed error======================================
+test_darts.py::test_scoreboard PASSED [ 50%]
+test_darts.py::test_score PASSED [ 50%]
+test_darts.py::test_noThirdPlayer FAILED [100%]
+
+self = <darts.scoreboard object at 0x10cdc2310>, player = 3
+ def playerscore(self, player):
+> return (self.playerscores[player-1])
+E IndexError: list index out of range
+darts.py:8: IndexError
+==================================================================
+
+GREEN
+
+Update the playerscore method to handle the case of a non-existing player:
+To fix it, we raise the required exception
+
+def playerscore(self, player):
+ if player==1 or player==2:
+ return (self.playerscores[player-1])
+ else:
+ raise NameError('player out of range')
+
+============================= test session starts ==============================
+collecting ... collected 3 items
+test_darts.py::test_scoreboard PASSED [ 33%]
+test_darts.py::test_score PASSED [ 66%]
+test_darts.py::test_noThirdPlayer PASSED [100%]
+============================== 3 passed in 0.01s ==============================
+
+
+RED
+Write a test to check if scoring works:
+
+def test_scoring():
+ game = darts.scoreboard()
+ game.playerthrown(1, 'single', 15)
+ assert game.playerscore(1) == 301 - 15
+ game.playerthrown(1, 'double', 20)
+ assert game.playerscore(1) == 301 - 15 - 2 * 20
+ game.playerthrown(1, 'triple', 5)
+ assert game.playerscore(1) == 301 - 15 - 2 * 20 - 3 * 5
+
+============================failed error======================================
+test_darts.py::test_scoreboard PASSED [ 25%]
+test_darts.py::test_score PASSED [ 50%]
+test_darts.py::test_noThirdPlayer PASSED [ 75%]
+test_darts.py::test_scoring FAILED [100%]
+
+E AttributeError: 'scoreboard' object has no attribute 'playerthrown'
+test_darts.py:24: AttributeError
+
+
+This will fail because the playerthrown method doesn't exist.
+==================================================================
+
+GREEN
+Let's Implement the playerthrown method
+let us add the function
+
+
+def playerthrown(self, player, multiplier, number):
+ if multiplier == 'double':
+ number = number * 2
+ elif multiplier == "triple":
+ number = number * 3
+ self.playerscores[player - 1] -= number
+
+
+============================= test session starts ==============================
+collecting ... collected 4 items
+test_darts.py::test_scoreboard PASSED [ 25%]
+test_darts.py::test_score PASSED [ 50%]
+test_darts.py::test_noThirdPlayer PASSED [ 75%]
+test_darts.py::test_scoring PASSED [100%]
+============================== 4 passed in 0.01s ===============================
+
+
+RED
+Test to check if player 2 can't play before player 1:
+
+def test_player1_plays_first():
+    game = darts.scoreboard()
+    with pytest.raises(NameError):
+        game.playerthrown(2, 'single', 5)
+
+
+============================failed error======================================
+test_darts.py:32 (test_player1_plays_first)
+def test_player1_plays_first():
+ game = darts.scoreboard()
+ with pytest.raises(NameError):
+> game.playerthrown(2, 'single', 5)
+E Failed: DID NOT RAISE <class 'NameError'>
+test_darts.py:36: Failed
+============================================================================
+
+GREEN
+Update the playerthrown method to enforce that player 1 plays first and introduce a variable turn in init:
+
+def __init__(self):
+ self.playerscores = [301, 301]
+ #add a turn variable to keep track of whose turn it is
+ self.turn = 1
+
+def playerthrown(self, player, multiplier, number):
+ #throw error if it is not the player's turn
+ if player != self.turn:
+ raise NameError('throw out of turn')
+
+============================= test session starts ==============================
+test_darts.py::test_scoreboard PASSED [ 20%]
+test_darts.py::test_score PASSED [ 40%]
+test_darts.py::test_noThirdPlayer PASSED [ 60%]
+test_darts.py::test_scoring PASSED [ 80%]
+test_darts.py::test_player1_plays_first PASSED [100%]
+================== 5 passed in 0.01s ===========================
+
+RED
+
+def test_three_throws():
+    game = darts.scoreboard ()
+    game.playerthrown(1 ,"triple" ,5)
+    game.playerthrown(1 ,"triple" ,5)
+    game.playerthrown(1 ,"triple" ,5)
+    #extending the test to check if the turn is switched
+    game. playerthrown (2 ,"triple" ,20)
+    game. playerthrown (2 ,"triple" ,20)
+    game. playerthrown (2 ,"triple" ,20)
+    game. playerthrown (1 ,"triple" ,20)
+    assert game.playerscore(1) == 301 - 3*3 * 5 - 3*20
+    # assert game.playerscore(2) == 301 - 3 * 20
+
+
+============================failed error======================================
+self = <darts.scoreboard object at 0x10c1c6f70>, player = 2
+multiplier = 'triple', number = 20
+ def playerthrown(self, player, multiplier, number):
+ #throw error if it is not the player's turn
+ if player != self.turn:
+> raise NameError('throw out of turn')
+E NameError: throw out of turn
+darts.py:18: NameError
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+test_darts.py:37 (test_three_throws)
+def test_three_throws():
+ game = darts.scoreboard ()
+ game.playerthrown(1 ,"triple" ,5)
+ game.playerthrown(1 ,"triple" ,5)
+> game.playerthrown(1 ,"triple" ,5)
+test_darts.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+self = <darts.scoreboard object at 0x10ec419d0>, 
+player = 1
+multiplier = 'triple', number = 5
+ def playerthrown(self, player, multiplier, number):
+ #throw error if it is not the player's turn
+ if player != self.turn:
+> raise NameError('throw out of turn')
+E NameError: throw out of turn
+darts.py:19: NameError
+
+
+
+This will fail because the turn isn't switching after three throws.
+============================================================================
+
+GREEN
+Update the playerthrown method to switch turns after three throws:
+First introduce a new variable throws in init, Then modify playerthrown
+
+def __init__(self):
+ self.playerscores = [301, 301]
+ #add a turn variable to keep track of whose turn it is
+ self.turn = 1
+ self.throws=0
+
+def playerthrown(self, player, multiplier, number):
+ if player != self.turn:
+ raise NameError('throw out of turn')
+ self.throws += 1
+ #if we have done 3 throws, it is the other player's turn
+ if self.throws == 3:
+   self.throws = 0
+   if self.turn == 1:
+     self.turn = 2
+   else:
+     self.turn = 1
+
+
+============================= test session starts ==============================
+test_darts.py::test_scoreboard PASSED [ 16%]
+test_darts.py::test_score PASSED [ 33%]
+test_darts.py::test_noThirdPlayer PASSED [ 50%]
+test_darts.py::test_scoring PASSED [ 66%]
+test_darts.py::test_player1_plays_first PASSED [ 83%]
+test_darts.py::test_three_throws PASSED [100%]
+================== 6 passed in 0.03s ===========================
+
+
+RED
+
+def test_win():
+    game = darts.scoreboard()
+    game.playerthrown(1, 'triple', 20)
+    game.playerthrown(1, 'triple', 20)
+    game.playerthrown(1, 'triple', 20)
+    game.playerthrown(2, 'single', 1)
+    game.playerthrown(2, 'single', 1)
+    game.playerthrown(2, 'single', 1)
+    game.playerthrown(1, 'double', 19)
+    game.playerthrown(1, 'double', 19)
+    game.playerthrown(1, 'double', 19)
+    game.playerthrown(2, 'single', 1)
+    game.playerthrown(2, 'single', 1)
+    game.playerthrown(2, 'single', 1)
+    game.playerthrown(1, 'single', 1)
+    game.playerthrown(1, 'single', 3)
+    game.playerthrown(1, 'single', 3)
+    assert game.playerscore(1)== "WON"
+
+=======================================================
+This will fail because the code doesn't handle the case of a player winning.
+
+AssertionError: assert 0 == 'WON'
+========================================================
+
+GREEN
+Update the playerthrown method to check for a win:
+
+def playerscore(self, player):
+ if player==1 or player==2:
+ #adding code for winning condition
+ if self.playerscores[player-1] == 0:
+ return('WON')
+ else:
+ return (self.playerscores[player-1])
+ else:
+ raise NameError('player out of range')
+
+
+============================= test session starts ==============================
+test_darts.py::test_scoreboard PASSED [ 13%]
+test_darts.py::test_score PASSED [ 30%]
+test_darts.py::test_noThirdPlayer PASSED [ 47%]
+test_darts.py::test_scoring PASSED [ 63%]
+test_darts.py::test_player1_plays_first PASSED [ 63%]
+test_darts.py::test_three_throws PASSED [70%]
+test_darts.py::test_win PASSED [100%]
+================== 7 passed in 0.05s ===========================
+
+
+

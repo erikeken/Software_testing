@@ -14,10 +14,10 @@ class PasswordValidator:
         check_special = bool(re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)) # check if password contains any special characters
         check_length = len(password) >= 8 #check if length is equal or more than 8 characters
 
-        if check_upper and check_special and check_length: # If all =true return true else false
-            return True
-        else:
-            return False
+        return check_upper and check_special and check_length # If all =true return true else false
+            #return True
+        #else:
+#            return False
           # Task 1: validate password for registration
 
 

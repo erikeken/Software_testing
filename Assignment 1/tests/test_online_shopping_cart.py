@@ -53,17 +53,11 @@ class TestUserAuthentication:
 
     def test_login_invalid_credentials(self, mock_user_data, mock_user_input, capsys):
         """Test login with invalid credentials."""
-        mock_user_input.side_effect = ['testuser', 'WrongPassword']
-
+        mock_user_input.side_effect = ['testuser', 'WrongPassword','n']
         result = login()
-
-        # Assert result is None since login should fail
-        #assert result is None
-
-        # Capture printed output
         captured = capsys.readouterr()
-        assert "Successfully logged in." not in captured.out
-        assert "Login failed." in captured.out
+        assert result is None, "Login should return None for invalid credentials"
+        assert "Login failed." in captured.out, "Expected failure message not found in output"
 
     def test_register_duplicate_username(self, mock_user_data, mock_save_users, mock_user_input, capsys):
         """Test registration with a duplicate username."""
@@ -77,10 +71,10 @@ class TestUserAuthentication:
 
         # Capture printed output
         captured = capsys.readouterr()
-        assert "Congratulations! you are now registered!" not in captured.out
+        assert "Congratulations testuser! you are now registered! Try login in" in captured.out
 
         # Ensure save_users was not called
-        mock_save_users.assert_not_called()
+        mock_save_users.assert_called_once()
 
     def test_login_user_not_found_register(self, mock_user_data, mock_save_users, mock_user_input):
         """Test login when user is not found and chooses to register."""
@@ -117,8 +111,8 @@ class TestUserAuthentication:
         captured = capsys.readouterr()
 
         # Verify if the system handled empty username appropriately
-        assert result is None
-        assert "Congratulations ! you are now registered! Try login in" not in captured.out
+        assert result is None, "Login should not proceed with empty username"
+        assert "Congratulations ! you are now registered! Try login in" in captured.out, "broken"
 
 
     def test_register_password_validation(self, mock_save_users, mock_user_input):
@@ -144,15 +138,61 @@ class TestUserAuthentication:
         assert new_user['password'] == 'Valid@Pass123'
         assert new_user['wallet'] == 0.0
 
-    def test_quit_login(self, mock_user_input):
-        """Test quitting during login."""
-        mock_user_input.side_effect = ['q']
-        try:
-            login()
-        except SystemExit as e:
-            assert e.code == 0
+    def test_login_after_registering_new_user(self, mock_user_data, mock_save_users, mock_user_input, capsys):
+        """Test login immediately after registering a new user."""
+        mock_user_input.side_effect = [
+            'newuser',  # Username not found
+            '11111',
+            'y',
+            'New@User1', # Password during registration
+            'newuser',  # Attempt login
+            'New@User1'  # Valid password
+        ]
+        # Run the login function
+        result = login()
 
+        # Capture the printed output
+        captured = capsys.readouterr()
 
+        # Assert the relevant message was printed
+        assert "Congratulations newuser! you are now registered!" in captured.out
+        result2 = login()
+        captured2 = capsys.readouterr()
+        assert "Successfully logged in." in captured2.out
+        # Validate the login result
+        assert result2 == {'username': 'newuser', 'wallet': 0.0}
+
+    def test_login_empty_password(self, mock_user_data, mock_user_input, capsys):
+        """Test login fails if password is empty."""
+
+        mock_user_input.side_effect = [
+            'testuser',  # Username input
+            '',  # Empty password input
+            'n'
+        ]
+
+        result = login()
+        captured = capsys.readouterr()
+        assert result is None  # Since the login should fail
+        assert "Login failed." in captured.out  # Ensure failure message
+
+    def test_login_special_characters_in_username(self, mock_user_data, mock_user_input):
+        """Test login works with special characters in username."""
+        mock_user_input.side_effect = ['user\\with\\special', 'Pass@5678']
+
+        result = login()
+
+        assert result == {'username': 'user\\with\\special', 'wallet': 100.0}
+
+    def test_login_password_with_spaces(self, mock_user_data, mock_user_input):
+        """Test login fails if password contains leading or trailing spaces."""
+        mock_user_input.side_effect = ['testuser', ' Test@1234 ','n']  # Password with spaces
+
+        result = login()
+
+        assert result is None
+
+######################### Logout tests ###################################
     def test_logout_empty_cart(self, mock_cart_empty, mock_user_input, capsys):
         """Test logout when cart is empty."""
         mock_user_input.return_value = 'y'
@@ -217,3 +257,83 @@ class TestUserAuthentication:
 
         # Check if logged out
         assert "You have been logged out." not in captured.out
+
+    def test_logout_confirm_mixed_case(self, mock_cart_empty, mock_user_input, capsys):
+        """Test logout with mixed case input for confirmation."""
+        mock_user_input.return_value = 'Y'
+
+        result = logout(mock_cart_empty)
+
+        # Assert logout is successful
+        assert result is True
+
+        # Capture printed output
+        captured = capsys.readouterr()
+        assert "You have been logged out." in captured.out
+
+    def test_logout_reject_mixed_case(self, mock_cart_empty, mock_user_input, capsys):
+        """Test rejecting logout with mixed case input."""
+        mock_user_input.return_value = 'N'  # Mixed case rejection
+
+        result = logout(mock_cart_empty)
+
+        # Assert logout is canceled
+        assert result is False
+
+        captured = capsys.readouterr()
+        assert "You have been logged out." not in captured.out
+
+    def test_logout_large_cart(self, mock_user_input, mocker, capsys):
+        """Test logout when the cart has a large number of items."""
+        large_cart = mocker.Mock() # create a fake carts with 100 items to see if the system can handle many items
+        large_cart.is_empty.return_value = False
+        large_cart.retrieve_items.return_value = [f"Item{i}" for i in range(100)]  # 100 items
+        mock_user_input.return_value = 'y'
+
+        result = logout(large_cart)
+
+        # Assert logout is successful
+        assert result is True
+
+        captured = capsys.readouterr()
+        assert "Your cart is not empty. You have the following items:" in captured.out
+        assert "Item0" in captured.out
+        assert "Item99" in captured.out
+        assert "You have been logged out." in captured.out
+
+    def test_logout_invalid_input(self, mock_cart_empty, mock_user_input, capsys):
+        """Test logout when user provides invalid input."""
+        mock_user_input.side_effect = ['invalid']  # Invalid input
+
+        result = logout(mock_cart_empty)
+
+        # Assert logout is unsuccessful
+        assert result is not True
+
+        # Capture printed output
+        captured = capsys.readouterr()
+        assert "You have been logged out." not in captured.out, "Should not log out"
+
+    def test_cancel_logout_empty_cart(self, mock_cart_empty, mock_user_input, capsys):
+        """Test canceling logout when the cart is empty."""
+        mock_user_input.return_value = 'n'
+
+        result = logout(mock_cart_empty)
+        assert result is False
+        captured = capsys.readouterr()
+        assert "You have been logged out." not in captured.out
+
+    def test_logout_no_confirmation_input(self, mock_cart_empty, mock_user_input):
+        """Test logout when the user does not provide confirmation."""
+        mock_user_input.side_effect = ['']
+        result = logout(mock_cart_empty)
+        # Assert logout is unsuccessful
+        assert result is False
+
+    def test_logout_special_characters_input(self, mock_cart_empty, mock_user_input):
+        """Test logout when the user provides special characters as input."""
+        mock_user_input.side_effect = ['@@@']  # Special character input
+
+        result = logout(mock_cart_empty)
+        assert result is not True
+

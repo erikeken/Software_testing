@@ -15,14 +15,14 @@ def register_user(username: str, data) -> None:
     while True:
         password = UserInterface.get_user_input(prompt='Enter a password: ') # prompt the user for password
 
-        if PasswordValidator.is_valid(password): # if true call UserAuthenticator to register the new user
+        if PasswordValidator.is_valid(password):     # if true call UserAuthenticator to register the new user
             UserAuthenticator.register(username=username, password=password, data=data)
             print(f'Congratulations {username}! you are now registered! Try login in')
             break
         else:
             print('Password must have at least 8 characters, one special character and one upper case character. Try again')
 
-def login() -> dict[str, str | float] | None:
+def login() -> dict[str, str | float | list[dict[str, str]]] | None:
     username: str = UserInterface.get_user_input(prompt="Enter your username (or 'q' to quit): ")
     if is_quit(input_argument=username):
         exit(0)  # The user has quit
@@ -31,11 +31,12 @@ def login() -> dict[str, str | float] | None:
     if is_quit(input_argument=password):
         exit(0)   # The user has quit
 
-    is_authentic_user: dict[str, str | float] = UserAuthenticator().login(
+    is_authentic_user: dict[str, str | float | list[dict[str, str]]] = UserAuthenticator().login(
         username=username,
         password=password,
         data=UserDataManager.load_users()
     )
+
     if is_authentic_user is not None:
         return is_authentic_user
 

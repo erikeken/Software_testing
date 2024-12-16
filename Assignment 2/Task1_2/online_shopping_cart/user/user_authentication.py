@@ -2,7 +2,8 @@
 # USER AUTHENTICATION CLASSES #
 ###############################
 import re # using the re module for password verification
-
+from online_shopping_cart.user.credit_card_manager import CreditCardManager
+from online_shopping_cart.user.user import User
 from online_shopping_cart.user.user_data import UserDataManager
 
 
@@ -24,7 +25,7 @@ class PasswordValidator:
 class UserAuthenticator:
 
     @staticmethod
-    def login(username, password, data) -> dict[str, str | float] | None:
+    def login(username, password, data) -> dict[str, str | float | list[dict[str, str]]] | None:
         is_user_registered: bool = False
 
         for entry in data:
@@ -35,7 +36,8 @@ class UserAuthenticator:
                     print('Successfully logged in.')
                     return {
                         'username': entry['username'],
-                        'wallet': entry['wallet']
+                        'wallet': entry['wallet'],
+                        'credit_cards': entry['credit_cards']
                     }
                 break
 
@@ -47,62 +49,27 @@ class UserAuthenticator:
 
     @staticmethod
     def register(username, password, data) -> None:
-        new_user = {
-            'username': username,
-            'password': password,
-            'wallet': 0.0,
-            'credit_cards': []  # Initialize with an empty list of credit cards
-        }
+        # Create a new User object with username and wallet initialized to 0.0
+        new_user = User(name=username, wallet=0.0, credit_cards=[])
 
         # Prompt for credit card details
         while True:
             add_card = input("Would you like to add a credit card now? (y/n): ").strip().lower()
             if add_card == 'y':
-                card_details = UserAuthenticator.get_credit_card_details()
-                new_user['credit_cards'].append(card_details)
+                CreditCardManager.add_credit_card(new_user, is_new_user=True)
             elif add_card == 'n':
                 break
             else:
                 print("Invalid input. Please enter 'y' or 'n'.")
 
-        data.append(new_user)
-        UserDataManager.save_users(data)  # Rewrite the file with the added user
-
-    @staticmethod
-    def get_credit_card_details():
-        """Prompt for credit card details and return as a dictionary."""
-        card_number = input("Enter card number: ").strip()
-        expiry_date = input("Enter expiry date (MM/YY): ").strip()
-        card_name = input("Enter name on card: ").strip()
-        cvv = input("Enter CVV: ").strip()
-
-        return {
-            'card_number': card_number,
-            'expiry_date': expiry_date,
-            'card_name': card_name,
-            'cvv': cvv
+        # Convert the new User object to a dictionary and append to data
+        user_data = {
+            'username': new_user.name,
+            'password': password,
+            'wallet': new_user.wallet,
+            'credit_cards': new_user.credit_cards
         }
+        data.append(user_data)
 
-    @staticmethod
-    def edit_credit_card_details(username, data):
-        """Allow users to edit their credit card details."""
-        user = next((u for u in data if u['username'].lower() == username.lower()), None)
-        if not user:
-            print("User not found.")
-            return
-
-        if not user['credit_cards']:
-            print("No credit cards found.")
-            return
-
-        print("Current credit cards:")
-        for idx, card in enumerate(user['credit_cards'], start=1):
-            print(f"{idx}. {card['card_name']} ({card['card_number'][-4:]})")
-
-        card_idx = int(input("Enter the number of the card to edit: ")) - 1
-        if 0 <= card_idx < len(user['credit_cards']):
-            user['credit_cards'][card_idx] = UserAuthenticator.get_credit_card_details()
-            UserDataManager.save_users(data)
-            print("Credit card details updated.")
-        else:
-            print("Invalid selection.")
+        # Save updated data to the storage
+        UserDataManager.save_users(data)

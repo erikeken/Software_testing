@@ -13,7 +13,7 @@ def search_and_purchase_product() -> None:
     Search for a product and buy it
     """
     while True:
-        login_info: dict[str, str | float] | None = login()  # Login as a user
+        login_info: dict[str, str | float | list[dict[str, str]]] | None = login()  # Login as a user
         if login_info is not None:
             break
 

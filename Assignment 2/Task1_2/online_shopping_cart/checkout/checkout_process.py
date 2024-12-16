@@ -2,6 +2,7 @@ import json
 
 from online_shopping_cart.checkout.shopping_cart import ShoppingCart
 from online_shopping_cart.product.product_data import get_products
+from online_shopping_cart.user.credit_card_manager import CreditCardManager
 from online_shopping_cart.user.user_interface import UserInterface
 from online_shopping_cart.product.product import Product
 from online_shopping_cart.user.user_logout import logout
@@ -33,14 +34,59 @@ def checkout(user, cart) -> None:
         return
 
     total_price: float = cart.get_total_price()
-    if total_price > user.wallet:
-        print(f"You don't have enough money to complete the purchase. Please try again!")
-        return
-    user.wallet -= total_price  # Deduct the total price from the user's wallet
+
+    while True:
+        payment_method = UserInterface.get_user_input(prompt="How would you like to pay? (wallet/card): ").strip().lower()
+
+        if payment_method == "wallet" or payment_method == "w":
+
+            if total_price > user.wallet:
+                print(f"You don't have enough money to complete the purchase. Please try again!")
+                return
+            user.wallet -= total_price  # Deduct the total price from the user's wallet
+            print(f'Thank you for your purchase, {user.name}! Your remaining balance is {user.wallet}')
+            break
+
+        elif payment_method == "card" or payment_method == "c":
+            if not user.credit_cards:
+                selection = UserInterface.get_user_input(
+                    prompt="You don't have any saved cards. Would you like to add one? (y/n)")
+                if selection == "y":
+                    CreditCardManager.add_credit_card(user)
+                elif selection == "n":
+                    continue
+                else:
+                    print("Invalid selection. Please try again.")
+
+            print("Your saved credit cards:")
+            CreditCardManager.list_credit_cards(user)
+
+            card_choice = UserInterface.get_user_input(
+                prompt="Enter the number of the card you want to use, or type 's' for card settings: "
+            ).strip().lower()
+
+            if card_choice == 's' or card_choice == 'settings':
+                update_choice = UserInterface.get_user_input(
+                    prompt="Type 'u' to update current card details, or 'a' to add a new card: "
+                ).strip().lower()
+                if update_choice == 'u' or update_choice == 'update':
+                    CreditCardManager.edit_credit_card(user)
+                elif update_choice == 'a' or update_choice == 'add':
+                    CreditCardManager.add_credit_card(user)
+                else:
+                    print("Invalid choice. Please try again.")
+            if card_choice.isdigit() and 1 <= int(card_choice) <= len(user.credit_cards):
+                selected_card = user.credit_cards[int(card_choice) - 1]
+                print(f"Payment successful using card {selected_card['card_name']} "
+                      f"ending in {selected_card['card_number'][-4:]}.")
+                print(f'Thank you for your purchase, {user.name}!')
+                break
+            else:
+                print("Invalid card selection. Please try again.")
+        else:
+            print("Invalid payment method. Please choose 'wallet' or 'card'.")
+
     cart.clear_items()  # Clear the cart
-
-    print(f'Thank you for your purchase, {user.name}! Your remaining balance is {user.wallet}')
-
 
 def display_cart_items(cart) -> None:
     print('\nItems in the cart:')
@@ -101,7 +147,8 @@ def checkout_and_payment(login_info) -> None:
 
     user: User = User(
         name=login_info['username'],
-        wallet=login_info['wallet']
+        wallet=login_info['wallet'],
+        credit_cards=login_info['credit_cards']
     )
 
     # Get user input for either selecting a product by its number, checking their cart or logging out

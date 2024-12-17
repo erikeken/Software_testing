@@ -5,6 +5,7 @@ import re # using the re module for password verification
 from online_shopping_cart.user.credit_card_manager import CreditCardManager
 from online_shopping_cart.user.user import User
 from online_shopping_cart.user.user_data import UserDataManager
+from online_shopping_cart.user.user_interface import UserInterface
 
 
 class PasswordValidator:
@@ -37,7 +38,7 @@ class UserAuthenticator:
                     return {
                         'username': entry['username'],
                         'wallet': entry['wallet'],
-                        'credit_cards': entry['credit_cards']
+                        'credit_cards': entry.get('credit_cards', [])  # Use `get` with default empty list
                     }
                 break
 
@@ -54,7 +55,7 @@ class UserAuthenticator:
 
         # Prompt for credit card details
         while True:
-            add_card = input("Would you like to add a credit card now? (y/n): ").strip().lower()
+            add_card = UserInterface.get_user_input(prompt="Would you like to add a credit card now? (y/n): ").strip().lower()
             if add_card == 'y':
                 CreditCardManager.add_credit_card(new_user, is_new_user=True)
             elif add_card == 'n':

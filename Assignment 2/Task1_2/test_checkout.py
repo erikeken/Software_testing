@@ -3,11 +3,12 @@ from itertools import product
 import pytest
 from pytest import fixture
 
-from online_shopping_cart.checkout.checkout_process import checkout_and_payment
+from online_shopping_cart.checkout.checkout_process import checkout_and_payment, checkout
 from online_shopping_cart.product.product import Product
 from online_shopping_cart.user.user_login import login, register_user
-
-
+from online_shopping_cart.user.user import User
+from online_shopping_cart.user.user_authentication import UserAuthenticator
+from online_shopping_cart.user.credit_card_manager import CreditCardManager
 
 class TestCheckout:
 
@@ -285,3 +286,120 @@ class TestCheckout:
         # Verify if the system handled empty username appropriately
         assert result is None, "Login should not proceed with empty username"
         assert "Congratulations ! you are now registered! Try login in" in captured.out, "broken"
+
+################################### After creditcard implementation tests ########################################
+
+
+    def test_checkout_with_credit_card_payment(self, mocker, mock_user_input, mock_cart_with_items):
+        user = User(name="Erik", wallet=10.0, credit_cards=[
+            {'card_number': "4111111111111111", 'expiry_date': "12/25", 'card_name': "John's Card", 'cvv': "123"}
+        ])
+        mock_cart_with_items.get_total_price.return_value = 50.0  # Mock total price
+        mock_cart_with_items.clear_items = mocker.Mock()
+
+        mock_user_input.side_effect=[
+            "card", "1"
+        ]
+
+        checkout(user, mock_cart_with_items)
+
+
+    def test_checkout_add_credit_card(self, mocker, mock_cart_with_items):
+        user = User(name="Erik", wallet=0.0, credit_cards=[])
+        mock_cart_with_items.get_total_price.return_value = 50.0  # Mock total price
+        mock_cart_with_items.clear_items = mocker.Mock()
+
+        mocker.patch('builtins.input', side_effect=[
+            "card",  # Payment method
+            "y",     # Add a credit card
+            "4111111111111111", "12/25", "Erik's New Card", "123",  # Card details
+            "1"      # Select the newly added card
+        ])
+
+        checkout(user, mock_cart_with_items)
+
+        assert len(user.credit_cards) == 1, "A new credit card should be added."
+        mock_cart_with_items.clear_items.assert_called_once()
+
+    def test_edit_credit_card(self, mock_user_input):
+        """Test editing an existing credit card."""
+        # Mock user with existing credit cards
+        user = User(
+            name="Erik",
+            wallet=100.0,
+            credit_cards=[
+                {'card_number': "4111111111111111", 'expiry_date': "12/25", 'card_name': "newuser", 'cvv': "123"}
+            ]
+        )
+
+        mock_user_input.side_effect=[
+            "1",  # First card
+            "4222222222222222",  # New card number
+            "01/26",  # New expiry date
+            "neweruser",  # New name
+            "456"  # New CVV
+        ]
+
+        CreditCardManager.edit_credit_card(user)
+
+        assert len(user.credit_cards) == 1, "There should still be one credit card."
+        assert user.credit_cards[0]['card_number'] == "4222222222222222", "Card number was not updated correctly."
+        assert user.credit_cards[0]['expiry_date'] == "01/26", "Expiry date was not updated correctly."
+        assert user.credit_cards[0]['card_name'] == "neweruser", "Card name was not updated correctly."
+        assert user.credit_cards[0]['cvv'] == "456", "CVV was not updated correctly."
+
+    ######################### LOGIN TESTS ############################
+
+    def test_register_with_credit_card(self, mocker, mock_user_input):
+        data = []
+        mock_user_input.side_effect=[
+            "y",  # Add credit card
+            "4111111111111111", "12/25", "newuser", "123", "n"  # Card details
+        ]
+
+        UserAuthenticator.register("newuser", "New@User1", data)
+
+        assert len(data) == 1, "User data should include one new user."
+        assert len(data[0]['credit_cards']) == 1, "Credit card should be added during registration."
+        assert data[0]['credit_cards'][0]['card_name'] == "newuser", "Credit card name mismatch."
+
+    def test_register_without_credit_card(self, mock_user_input):
+        """Test user registration without adding a credit card."""
+        data = []
+
+        mock_user_input.side_effect=[
+            "n"  # Do not add an credit card
+        ]
+        UserAuthenticator.register("newuser", "New@User1", data)
+
+        assert len(data) == 1, "User data should include one new user."
+        assert data[0]['credit_cards'] == [], "No credit cards should be added."
+
+    def test_register_with_multiple_credit_cards(self, mock_user_input):
+        """Test user registration with multiple credit cards."""
+        data = []
+
+        mock_user_input.side_effect=[
+            "y",  # Add first card
+            "4111111111111111", "12/25", "newuser", "123",  # First card details
+            "y",  # Add second card
+            "4222222222222222", "01/26", "neweruser", "456",  # Second card details
+            "n"  # Stop
+        ]
+
+        UserAuthenticator.register("newuser", "New@User1", data)
+
+        assert len(data) == 1, "User data should include one new user."
+        assert len(data[0]['credit_cards']) == 2, "Two credit cards should be added during registration."
+
+        # assert first card
+        assert data[0]['credit_cards'][0]['card_number'] == "4111111111111111", "First card number mismatch."
+        assert data[0]['credit_cards'][0]['expiry_date'] == "12/25", "First card expiry date mismatch."
+        assert data[0]['credit_cards'][0]['card_name'] == "newuser", "First card name mismatch."
+        assert data[0]['credit_cards'][0]['cvv'] == "123", "First card CVV mismatch."
+
+        # second card
+        assert data[0]['credit_cards'][1]['card_number'] == "4222222222222222", "Second card number mismatch."
+        assert data[0]['credit_cards'][1]['expiry_date'] == "01/26", "Second card expiry date mismatch."
+        assert data[0]['credit_cards'][1]['card_name'] == "neweruser", "Second card name mismatch."
+        assert data[0]['credit_cards'][1]['cvv'] == "456", "Second card CVV mismatch."

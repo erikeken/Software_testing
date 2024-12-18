@@ -1,19 +1,20 @@
 from online_shopping_cart.user.user_data import UserDataManager
+from online_shopping_cart.user.user_interface import UserInterface
 
 class CreditCardManager:
     @staticmethod
     def add_credit_card(user, is_new_user = False):
         """Add a new credit card to the user's profile."""
-        card_number = input("Enter card number: ").strip()
-        expiry_date = input("Enter expiry date (MM/YY): ").strip()
-        card_name = input("Enter name on card: ").strip()
-        cvc = input("Enter CVC: ").strip()
+        card_number = UserInterface.get_user_input(prompt="Enter card number: ").strip()
+        expiry_date = UserInterface.get_user_input(prompt="Enter expiry date (MM/YY): ").strip()
+        card_name = UserInterface.get_user_input(prompt="Enter name on card: ").strip()
+        cvv = UserInterface.get_user_input(prompt="Enter CVV: ").strip()
 
         user.credit_cards.append({
             'card_number': card_number,
             'expiry_date': expiry_date,
             'card_name': card_name,
-            'cvv': cvc
+            'cvv': cvv
         })
 
         if is_new_user:
@@ -29,13 +30,13 @@ class CreditCardManager:
             return
 
         CreditCardManager.list_credit_cards(user)
-        index = int(input("Enter the number of the card to edit: ")) - 1
+        index = int(UserInterface.get_user_input(prompt="Enter the number of the card to edit: ")) - 1
         if 0 <= index < len(user.credit_cards):
             print("Enter new details for the card:")
-            card_number = input("Enter new card number: ").strip()
-            expiry_date = input("Enter new expiry date (MM/YY): ").strip()
-            card_name = input("Enter new name on card: ").strip()
-            cvv = input("Enter new CVV: ").strip()
+            card_number = UserInterface.get_user_input(prompt="Enter new card number: ").strip()
+            expiry_date = UserInterface.get_user_input(prompt="Enter new expiry date (MM/YY): ").strip()
+            card_name = UserInterface.get_user_input(prompt="Enter new name on card: ").strip()
+            cvv = UserInterface.get_user_input(prompt="Enter new CVV: ").strip()
 
             user.credit_cards[index] = {
                 'card_number': card_number,

@@ -1,0 +1,62 @@
+################################# Result from the diff #################################
+
+InputObject    SideIndicator
+-----------    -------------
+.\logfile2.txt =>
+.\logfile1.txt <=
+
+The only difference that can be observed is an extra line in logfile 2 that is removed in logfile1, otherwise the test perfrom the same pre/post 
+implementation.
+
+################################# Reasoning for choosen tests #################################
+1. test_checkout_and_payment3: Test the Display Branch
+
+    Description: Verify that the product display logic is executed and functions correctly.
+    Reason for choice: This test ensures that the system correctly calls the product display function when prompted.
+
+2. test_checkout_and_payment6: Test Normal Checkout
+
+    Description: Validate the checkout process with sufficient wallet funds.
+    Reason for choice: tests that a user's wallet is correctly debited and the data is saved properly.
+
+3. test_checkout_and_payment7: Test Checkout with Insufficient Wallet Funds
+
+    Description: Confirm the behavior when the wallet balance is insufficient.
+    Reason for choice:This test ensures that the system gracefully handles insufficient funds without allowing the transaction to proceed.
+
+4. test_checkout_and_payment19: Test Item Out of Stock
+
+    Description: Ensure the system handles attempts to add out-of-stock items correctly.
+    Reason for choice: This test verifies that the system prevents adding unavailable items to the cart and provides appropriate feedback.
+
+5. test_checkout_and_payment20: Test Checkout with an Empty Product List
+
+    Description: Validate behavior when the product list is empty.
+    Reason for choice: This test makes sure that the system provides appropriate feedback in such scenarios.
+
+
+################### Login test #######################################
+1. test_login_success
+
+    Description: Validate that a user with valid credentials can log in successfully.
+    Reason for choice: This test ensures that valid users are authenticated correctly.
+
+2. test_login_invalid_credentials
+
+    Description: Ensure the system handles incorrect credentials gracefully.
+    Reason for choice: This test confirms that invalid login attempts are properly rejected with appropriate feedback.
+
+3. test_login_user_not_found_register
+
+    Description: Validate that the system prompts unregistered users to register and handles the process correctly.
+    Reason for choice: This tests the integration between the login and registration functionalities, allowing a user to register if not found in database
+
+4. test_login_after_registering_new_user
+
+    Description: Ensure that a user can log in immediately after registering.
+    Reason for choice: Confirms that the registration process correctly updates the user database, enabling instant access for the new user.
+
+5. test_login_empty_username
+
+    Description: Test the behavior when the username field is empty.
+    Reason for choice: This edge case test makes sure that the system handles invalid input during login appropriately, preventing errors or unexpected behavior.

@@ -1,0 +1,269 @@
+digraph clustercheckout {
+	graph [label=checkout]
+	1 [label="import json
+from online_shopping_cart.checkout.shopping_cart import ShoppingCart
+from online_shopping_cart.product.product_data import get_products
+from online_shopping_cart.user.user_interface import UserInterface
+from online_shopping_cart.product.product import Product
+from online_shopping_cart.user.user_logout import logout
+from online_shopping_cart.user.user import User
+global_products: list[Product] = get_products()
+global_cart: ShoppingCart = ShoppingCart()
+global_user_file_path = 'files/users.json'
+def checkout(user, cart) ->None:...
+def display_cart_items(cart) ->None:...
+def check_cart(user, cart) ->(None | bool):...
+def display_products_available_for_purchase() ->None:...
+def checkout_and_payment(login_info) ->None:...
+"]
+	"1_calls" [label="get_products
+ShoppingCart" shape=box]
+	1 -> "1_calls" [label=calls style=dashed]
+	subgraph clustercheckout {
+		graph [label=checkout]
+		3 [label="\"\"\"
+    Complete the checkout process
+    \"\"\"
+if not cart.items:
+"]
+		4 [label="print('Your basket is empty. Please add items before checking out.')
+return
+"]
+		"4_calls" [label=print shape=box]
+		4 -> "4_calls" [label=calls style=dashed]
+		3 -> 4 [label="not cart.items"]
+		5 [label="total_price: float = cart.get_total_price()
+if total_price > user.wallet:
+"]
+		"5_calls" [label="cart.get_total_price" shape=box]
+		5 -> "5_calls" [label=calls style=dashed]
+		7 [label="print(
+    f\"You don't have enough money to complete the purchase. Please try again!\")
+return
+"]
+		"7_calls" [label=print shape=box]
+		7 -> "7_calls" [label=calls style=dashed]
+		5 -> 7 [label="total_price > user.wallet"]
+		8 [label="user.wallet -= total_price
+cart.clear_items()
+print(
+    f'Thank you for your purchase, {user.name}! Your remaining balance is {user.wallet}'
+    )
+"]
+		"8_calls" [label="cart.clear_items
+print" shape=box]
+		8 -> "8_calls" [label=calls style=dashed]
+		5 -> 8 [label="(total_price <= user.wallet)"]
+		3 -> 5 [label="(not not cart.items)"]
+	}
+	subgraph clusterdisplay_cart_items {
+		graph [label=display_cart_items]
+		12 [label="print(\"\"\"
+Items in the cart:\"\"\")
+"]
+		"12_calls" [label=print shape=box]
+		12 -> "12_calls" [label=calls style=dashed]
+		13 [label="for i, item in enumerate(cart.retrieve_items()):
+"]
+		14 [label="print(f'{i + 1}. {str(item)}')
+"]
+		"14_calls" [label=print shape=box]
+		14 -> "14_calls" [label=calls style=dashed]
+		14 -> 13 [label=""]
+		13 -> 14 [label="enumerate(cart.retrieve_items())"]
+		12 -> 13 [label=""]
+	}
+	subgraph clustercheck_cart {
+		graph [label=check_cart]
+		18 [label="\"\"\"
+    Print the cart and prompt user for proceeding to checkout
+    \"\"\"
+display_cart_items(cart)
+"]
+		"18_calls" [label=display_cart_items shape=box]
+		18 -> "18_calls" [label=calls style=dashed]
+		19 [label="while True:
+"]
+		20 [label="if not cart.is_empty() and UserInterface.get_user_input(prompt=
+"]
+		22 [label="return checkout(user=user, cart=cart)
+"]
+		20 -> 22 [label="not cart.is_empty() and UserInterface.get_user_input(prompt=
+    \"\"\"
+Do you want to checkout? - y/n: \"\"\").lower().startswith('y')"]
+		24 [label="if not cart.is_empty() and UserInterface.get_user_input(prompt=
+"]
+		25 [label="display_cart_items(cart)
+user_input: str = UserInterface.get_user_input(prompt=
+    \"\"\"
+Enter item number to remove from cart (or c to display cart): \"\"\"
+    ).lower()
+if user_input.startswith('c'):
+"]
+		"25_calls" [label="display_cart_items
+Call.lower" shape=box]
+		25 -> "25_calls" [label=calls style=dashed]
+		29 [label="display_cart_items(cart)
+"]
+		"29_calls" [label=display_cart_items shape=box]
+		29 -> "29_calls" [label=calls style=dashed]
+		29 -> 19 [label=""]
+		25 -> 29 [label="user_input.startswith('c')"]
+		31 [label="if user_input.isdigit() and 1 <= int(user_input) <= len(cart.retrieve_items()):
+"]
+		32 [label="selected_item: Product = cart.retrieve_items()[int(user_input) - 1]
+cart.remove_item(product=selected_item)
+[product.add_product_unit() for product in global_products if product.name ==
+    selected_item.name]
+return False
+"]
+		"32_calls" [label="cart.retrieve_items
+int
+cart.remove_item
+product.add_product_unit" shape=box]
+		32 -> "32_calls" [label=calls style=dashed]
+		31 -> 32 [label="user_input.isdigit() and 1 <= int(user_input) <= len(cart.retrieve_items())"]
+		34 [label="print('Invalid input. Please try again.')
+"]
+		"34_calls" [label=print shape=box]
+		34 -> "34_calls" [label=calls style=dashed]
+		34 -> 19 [label=""]
+		31 -> 34 [label="(not (user_input.isdigit() and 1 <= int(user_input) <= len(cart.
+    retrieve_items())))"]
+		25 -> 31 [label="(not user_input.startswith('c'))"]
+		24 -> 25 [label="not cart.is_empty() and UserInterface.get_user_input(prompt=
+    \"\"\"
+Do you want to remove an item? - y/n: \"\"\").lower().startswith('y')"]
+		27 [label="return False
+"]
+		24 -> 27 [label="(not (not cart.is_empty() and UserInterface.get_user_input(prompt=
+    \"\"\"
+Do you want to remove an item? - y/n: \"\"\").lower().startswith('y')))"]
+		20 -> 24 [label="(not (not cart.is_empty() and UserInterface.get_user_input(prompt=
+    \"\"\"
+Do you want to checkout? - y/n: \"\"\").lower().startswith('y')))"]
+		19 -> 20 [label=True]
+		18 -> 19 [label=""]
+	}
+	subgraph clusterdisplay_products_available_for_purchase {
+		graph [label=display_products_available_for_purchase]
+		39 [label="\"\"\"
+    Display available products in the global_products list
+    \"\"\"
+print(\"\"\"
+Available products for purchase:\"\"\")
+"]
+		"39_calls" [label=print shape=box]
+		39 -> "39_calls" [label=calls style=dashed]
+		40 [label="for i, product in enumerate(global_products):
+"]
+		41 [label="print(f'{i + 1}. {str(product)}')
+"]
+		"41_calls" [label=print shape=box]
+		41 -> "41_calls" [label=calls style=dashed]
+		41 -> 40 [label=""]
+		40 -> 41 [label="enumerate(global_products)"]
+		39 -> 40 [label=""]
+	}
+	subgraph clustercheckout_and_payment {
+		graph [label=checkout_and_payment]
+		45 [label="\"\"\"
+    Main function for the shopping and checkout process
+    \"\"\"
+user: User = User(name=login_info['username'], wallet=login_info['wallet'])
+"]
+		"45_calls" [label=User shape=box]
+		45 -> "45_calls" [label=calls style=dashed]
+		46 [label="while True:
+"]
+		47 [label="choice: str = UserInterface.get_user_input(prompt=
+    \"\"\"
+Enter product number or (d to display products, c to check cart, l to logout): \"\"\"
+    ).lower()
+if choice.startswith('d'):
+"]
+		"47_calls" [label="Call.lower" shape=box]
+		47 -> "47_calls" [label=calls style=dashed]
+		49 [label="display_products_available_for_purchase()
+"]
+		"49_calls" [label=display_products_available_for_purchase shape=box]
+		49 -> "49_calls" [label=calls style=dashed]
+		49 -> 46 [label=""]
+		47 -> 49 [label="choice.startswith('d')"]
+		51 [label="if choice.startswith('c'):
+"]
+		52 [label="if check_cart(user=user, cart=global_cart) is False:
+"]
+		69 [label="data = json.load(file)
+"]
+		"69_calls" [label="open
+json.load" shape=box]
+		69 -> "69_calls" [label=calls style=dashed]
+		70 [label="for itr in data:
+"]
+		71 [label="if itr['username'] == user.name:
+"]
+		73 [label="itr['wallet'] = user.wallet
+"]
+		73 -> 70 [label=""]
+		71 -> 73 [label="itr['username'] == user.name"]
+		71 -> 70 [label="(itr['username'] != user.name)"]
+		70 -> 71 [label=data]
+		72 [label="json.dump(data, file, indent=2)
+"]
+		"72_calls" [label="open
+json.dump" shape=box]
+		72 -> "72_calls" [label=calls style=dashed]
+		72 -> 46 [label=""]
+		70 -> 72 [label=""]
+		69 -> 70 [label=""]
+		52 -> 69 [label="(check_cart(user=user, cart=global_cart) is not False)"]
+		52 -> 46 [label="check_cart(user=user, cart=global_cart) is False"]
+		51 -> 52 [label="choice.startswith('c')"]
+		54 [label="if choice.startswith('l'):
+"]
+		55 [label="if logout(cart=global_cart):
+"]
+		64 [label="exit(0)
+return
+"]
+		"64_calls" [label=exit shape=box]
+		64 -> "64_calls" [label=calls style=dashed]
+		55 -> 64 [label="logout(cart=global_cart)"]
+		55 -> 46 [label="(not logout(cart=global_cart))"]
+		54 -> 55 [label="choice.startswith('l')"]
+		57 [label="if choice.isdigit() and 1 <= int(choice) <= len(global_products):
+"]
+		58 [label="selected_product: Product = global_products[int(choice) - 1]
+if selected_product.units > 0:
+"]
+		"58_calls" [label=int shape=box]
+		58 -> "58_calls" [label=calls style=dashed]
+		61 [label="global_cart.add_item(product=selected_product.get_product_unit())
+print(f'{selected_product.name} added to your cart.')
+"]
+		"61_calls" [label="global_cart.add_item
+print" shape=box]
+		61 -> "61_calls" [label=calls style=dashed]
+		61 -> 46 [label=""]
+		58 -> 61 [label="selected_product.units > 0"]
+		63 [label="print(f'Sorry, {selected_product.name} is out of stock.')
+"]
+		"63_calls" [label=print shape=box]
+		63 -> "63_calls" [label=calls style=dashed]
+		63 -> 46 [label=""]
+		58 -> 63 [label="(selected_product.units <= 0)"]
+		57 -> 58 [label="choice.isdigit() and 1 <= int(choice) <= len(global_products)"]
+		60 [label="print('Invalid input. Please try again.')
+"]
+		"60_calls" [label=print shape=box]
+		60 -> "60_calls" [label=calls style=dashed]
+		60 -> 46 [label=""]
+		57 -> 60 [label="(not (choice.isdigit() and 1 <= int(choice) <= len(global_products)))"]
+		54 -> 57 [label="(not choice.startswith('l'))"]
+		51 -> 54 [label="(not choice.startswith('c'))"]
+		47 -> 51 [label="(not choice.startswith('d'))"]
+		46 -> 47 [label=True]
+		45 -> 46 [label=""]
+	}
+}

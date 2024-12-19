@@ -1,0 +1,67 @@
+digraph clusterproduct_search {
+	graph [label=product_search]
+	1 [label="from online_shopping_cart.product.product_data import get_csv_data, PRODUCTS_FILE_PATHNAME
+from re import search, IGNORECASE
+PRODUCT_HEADER_INDEX: str = 'Product'
+def display_csv_as_table(csv_file_name=PRODUCTS_FILE_PATHNAME) ->None:...
+def display_filtered_table(csv_file_name=PRODUCTS_FILE_PATHNAME,...
+"]
+	subgraph clusterdisplay_csv_as_table {
+		graph [label=display_csv_as_table]
+		3 [label="\"\"\"
+    Display all the products row by row, starting with the header
+    \"\"\"
+header, csv_reader = get_csv_data(csv_file_name=csv_file_name)
+print(f'\n{header}')
+"]
+		"3_calls" [label="get_csv_data
+print" shape=box]
+		3 -> "3_calls" [label=calls style=dashed]
+		4 [label="for row in csv_reader:
+"]
+		5 [label="print(row)
+"]
+		"5_calls" [label=print shape=box]
+		5 -> "5_calls" [label=calls style=dashed]
+		5 -> 4 [label=""]
+		4 -> 5 [label=csv_reader]
+		3 -> 4 [label=""]
+	}
+	subgraph clusterdisplay_filtered_table {
+		graph [label=display_filtered_table]
+		9 [label="\"\"\"
+    Display products filtered by name row by row, starting with the header
+    \"\"\"
+if search_target is None:
+"]
+		10 [label="display_csv_as_table(csv_file_name=csv_file_name)
+"]
+		"10_calls" [label=display_csv_as_table shape=box]
+		10 -> "10_calls" [label=calls style=dashed]
+		9 -> 10 [label="search_target is None"]
+		12 [label="header, csv_reader = get_csv_data(csv_file_name=csv_file_name)
+print(f'\n{header}')
+condition_index: int = header.index(PRODUCT_HEADER_INDEX)
+"]
+		"12_calls" [label="get_csv_data
+print
+header.index" shape=box]
+		12 -> "12_calls" [label=calls style=dashed]
+		13 [label="for i, row in enumerate(csv_reader):
+"]
+		14 [label="if search(pattern=row[condition_index], string=search_target.capitalize(),
+"]
+		16 [label="print(row)
+"]
+		"16_calls" [label=print shape=box]
+		16 -> "16_calls" [label=calls style=dashed]
+		16 -> 13 [label=""]
+		14 -> 16 [label="search(pattern=row[condition_index], string=search_target.capitalize(),
+    flags=IGNORECASE)"]
+		14 -> 13 [label="(not search(pattern=row[condition_index], string=search_target.capitalize(),
+    flags=IGNORECASE))"]
+		13 -> 14 [label="enumerate(csv_reader)"]
+		12 -> 13 [label=""]
+		9 -> 12 [label="(search_target is not None)"]
+	}
+}

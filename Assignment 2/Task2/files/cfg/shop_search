@@ -1,0 +1,62 @@
+digraph clustershop_search {
+	graph [label=shop_search]
+	1 [label="from online_shopping_cart.product.product_search import display_csv_as_table, display_filtered_table
+from online_shopping_cart.checkout.checkout_process import checkout_and_payment
+from online_shopping_cart.user.user_interface import UserInterface
+from online_shopping_cart.user.user_login import login
+def search_and_purchase_product() ->None:...
+"]
+	subgraph clustersearch_and_purchase_product {
+		graph [label=search_and_purchase_product]
+		3 [label="\"\"\"
+    Search for a product and buy it
+    \"\"\"
+"]
+		4 [label="while True:
+"]
+		5 [label="login_info: dict[str, str | float] | None = login()
+if login_info is not None:
+"]
+		"5_calls" [label=login shape=box]
+		5 -> "5_calls" [label=calls style=dashed]
+		6 [label="while True:
+"]
+		9 [label="search_target: str = UserInterface.get_user_input(prompt=
+    \"Search for products in inventory (type 'all' for the whole inventory): \"
+    ).lower()
+if search_target == 'all':
+"]
+		"9_calls" [label="Call.lower" shape=box]
+		9 -> "9_calls" [label=calls style=dashed]
+		11 [label="display_csv_as_table()
+"]
+		"11_calls" [label=display_csv_as_table shape=box]
+		11 -> "11_calls" [label=calls style=dashed]
+		12 [label="check: str = UserInterface.get_user_input(prompt=\"\"\"
+Ready to shop? - y/n: \"\"\"
+    ).lower()
+if check.startswith('y'):
+"]
+		"12_calls" [label="Call.lower" shape=box]
+		12 -> "12_calls" [label=calls style=dashed]
+		10 [label="checkout_and_payment(login_info=login_info)
+"]
+		"10_calls" [label=checkout_and_payment shape=box]
+		10 -> "10_calls" [label=calls style=dashed]
+		12 -> 10 [label="check.startswith('y')"]
+		12 -> 6 [label="(not check.startswith('y'))"]
+		11 -> 12 [label=""]
+		9 -> 11 [label="search_target == 'all'"]
+		13 [label="display_filtered_table(search_target=search_target)
+"]
+		"13_calls" [label=display_filtered_table shape=box]
+		13 -> "13_calls" [label=calls style=dashed]
+		13 -> 12 [label=""]
+		9 -> 13 [label="(search_target != 'all')"]
+		6 -> 9 [label=True]
+		5 -> 6 [label="login_info is not None"]
+		5 -> 4 [label="(login_info is None)"]
+		4 -> 5 [label=True]
+		3 -> 4 [label=""]
+	}
+}

@@ -1,0 +1,40 @@
+digraph clusteruser_logout {
+	graph [label=user_logout]
+	1 [label="from online_shopping_cart.user.user_interface import UserInterface
+def logout(cart) ->bool:...
+"]
+	subgraph clusterlogout {
+		graph [label=logout]
+		3 [label="if not cart.is_empty():
+"]
+		4 [label="print('Your cart is not empty. You have the following items:')
+"]
+		"4_calls" [label=print shape=box]
+		4 -> "4_calls" [label=calls style=dashed]
+		6 [label="for item in cart.retrieve_items():
+"]
+		7 [label="print(str(item))
+"]
+		"7_calls" [label=print shape=box]
+		7 -> "7_calls" [label=calls style=dashed]
+		7 -> 6 [label=""]
+		6 -> 7 [label="cart.retrieve_items()"]
+		5 [label="if UserInterface.get_user_input(prompt='Do you still want to logout? - y/n: '
+"]
+		9 [label="print('You have been logged out.')
+return True
+"]
+		"9_calls" [label=print shape=box]
+		9 -> "9_calls" [label=calls style=dashed]
+		5 -> 9 [label="UserInterface.get_user_input(prompt='Do you still want to logout? - y/n: '
+    ).lower().startswith('y')"]
+		11 [label="return False
+"]
+		5 -> 11 [label="(not UserInterface.get_user_input(prompt=
+    'Do you still want to logout? - y/n: ').lower().startswith('y'))"]
+		6 -> 5 [label=""]
+		4 -> 6 [label=""]
+		3 -> 4 [label="not cart.is_empty()"]
+		3 -> 5 [label="(not not cart.is_empty())"]
+	}
+}

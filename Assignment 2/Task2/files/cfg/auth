@@ -1,0 +1,68 @@
+digraph clusterauth {
+	graph [label=auth]
+	1 [label="from online_shopping_cart.user.user_data import UserDataManager
+@staticmethod...
+@staticmethod...
+@staticmethod...
+"]
+	subgraph clusteris_valid {
+		graph [label=is_valid]
+		3 [label=""]
+	}
+	subgraph clusterlogin {
+		graph [label=login]
+		6 [label="is_user_registered: bool = False
+"]
+		7 [label="for entry in data:
+"]
+		8 [label="if entry['username'].lower() == username.lower():
+"]
+		10 [label="is_user_registered = True
+"]
+		11 [label="if is_user_registered:
+"]
+		12 [label="if entry['password'].lower() == password.lower():
+"]
+		14 [label="print('Successfully logged in.')
+return {'username': entry['username'], 'wallet': entry['wallet']}
+"]
+		"14_calls" [label=print shape=box]
+		14 -> "14_calls" [label=calls style=dashed]
+		12 -> 14 [label="entry['password'].lower() == password.lower()"]
+		9 [label="if not is_user_registered:
+"]
+		17 [label="print('User is not registered.')
+"]
+		"17_calls" [label=print shape=box]
+		17 -> "17_calls" [label=calls style=dashed]
+		18 [label="return None
+"]
+		17 -> 18 [label=""]
+		9 -> 17 [label="not is_user_registered"]
+		19 [label="print('Login failed.')
+"]
+		"19_calls" [label=print shape=box]
+		19 -> "19_calls" [label=calls style=dashed]
+		19 -> 18 [label=""]
+		9 -> 19 [label="(not not is_user_registered)"]
+		12 -> 9 [label="(entry['password'].lower() != password.lower())"]
+		11 -> 12 [label=is_user_registered]
+		11 -> 7 [label="(not is_user_registered)"]
+		10 -> 11 [label=""]
+		8 -> 10 [label="entry['username'].lower() == username.lower()"]
+		8 -> 11 [label="(entry['username'].lower() != username.lower())"]
+		7 -> 8 [label=data]
+		7 -> 9 [label=""]
+		6 -> 7 [label=""]
+	}
+	subgraph clusterregister {
+		graph [label=register]
+		23 [label="new_user = {'username': username, 'password': password, 'wallet': 0.0}
+data.append(new_user)
+UserDataManager.save_users(data)
+"]
+		"23_calls" [label="data.append
+UserDataManager.save_users" shape=box]
+		23 -> "23_calls" [label=calls style=dashed]
+	}
+}

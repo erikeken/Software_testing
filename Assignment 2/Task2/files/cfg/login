@@ -1,0 +1,99 @@
+digraph clusteruser_login {
+	graph [label=user_login]
+	1 [label="from online_shopping_cart.user import user_data
+from online_shopping_cart.user.user_authentication import UserAuthenticator, PasswordValidator
+from online_shopping_cart.user.user_interface import UserInterface
+from online_shopping_cart.user.user_data import UserDataManager
+def is_quit(input_argument: str) ->bool:...
+def register_user(username: str, data) ->None:...
+def login() ->(dict[str, str | float] | None):...
+"]
+	subgraph clusteris_quit {
+		graph [label=is_quit]
+		3 [label="return input_argument.lower() == 'q'
+"]
+	}
+	subgraph clusterregister_user {
+		graph [label=register_user]
+		7 [label="\"\"\"Prompts the user to input username and password, registers user if the password meets the criteria(special, upper and length) if not prompt again\"\"\"
+"]
+		8 [label="while True:
+"]
+		9 [label="password = UserInterface.get_user_input(prompt='Enter a password: ')
+if PasswordValidator.is_valid(password):
+"]
+		"9_calls" [label="UserInterface.get_user_input" shape=box]
+		9 -> "9_calls" [label=calls style=dashed]
+		11 [label="UserAuthenticator.register(username=username, password=password, data=data)
+print(f'Congratulations {username}! you are now registered! Try login in')
+"]
+		"11_calls" [label="UserAuthenticator.register
+print" shape=box]
+		11 -> "11_calls" [label=calls style=dashed]
+		9 -> 11 [label="PasswordValidator.is_valid(password)"]
+		13 [label="print(
+    'Password must have at least 8 characters, one special character and one upper case character. Try again'
+    )
+"]
+		"13_calls" [label=print shape=box]
+		13 -> "13_calls" [label=calls style=dashed]
+		13 -> 8 [label=""]
+		9 -> 13 [label="(not PasswordValidator.is_valid(password))"]
+		8 -> 9 [label=True]
+		7 -> 8 [label=""]
+	}
+	subgraph clusterlogin {
+		graph [label=login]
+		16 [label="username: str = UserInterface.get_user_input(prompt=
+    \"Enter your username (or 'q' to quit): \")
+if is_quit(input_argument=username):
+"]
+		"16_calls" [label="UserInterface.get_user_input" shape=box]
+		16 -> "16_calls" [label=calls style=dashed]
+		17 [label="exit(0)
+"]
+		"17_calls" [label=exit shape=box]
+		17 -> "17_calls" [label=calls style=dashed]
+		18 [label="password: str = UserInterface.get_user_input(prompt=
+    \"Enter your password (or 'q' to quit): \")
+if is_quit(input_argument=password):
+"]
+		"18_calls" [label="UserInterface.get_user_input" shape=box]
+		18 -> "18_calls" [label=calls style=dashed]
+		19 [label="exit(0)
+"]
+		"19_calls" [label=exit shape=box]
+		19 -> "19_calls" [label=calls style=dashed]
+		20 [label="is_authentic_user: dict[str, str | float] = UserAuthenticator().login(username
+    =username, password=password, data=UserDataManager.load_users())
+if is_authentic_user is not None:
+"]
+		"20_calls" [label="Call.login" shape=box]
+		20 -> "20_calls" [label=calls style=dashed]
+		21 [label="return is_authentic_user
+"]
+		20 -> 21 [label="is_authentic_user is not None"]
+		22 [label="register_prompt = UserInterface.get_user_input(
+    f\"Username '{username}' not found. Would you like to register? (y/n): \")
+if register_prompt.lower() == 'y':
+"]
+		"22_calls" [label="UserInterface.get_user_input" shape=box]
+		22 -> "22_calls" [label=calls style=dashed]
+		24 [label="register_user(username, data=UserDataManager.load_users())
+"]
+		"24_calls" [label=register_user shape=box]
+		24 -> "24_calls" [label=calls style=dashed]
+		25 [label="return None
+"]
+		24 -> 25 [label=""]
+		22 -> 24 [label="register_prompt.lower() == 'y'"]
+		22 -> 25 [label="(register_prompt.lower() != 'y')"]
+		20 -> 22 [label="(is_authentic_user is None)"]
+		19 -> 20 [label=""]
+		18 -> 19 [label="is_quit(input_argument=password)"]
+		18 -> 20 [label="(not is_quit(input_argument=password))"]
+		17 -> 18 [label=""]
+		16 -> 17 [label="is_quit(input_argument=username)"]
+		16 -> 18 [label="(not is_quit(input_argument=username))"]
+	}
+}
